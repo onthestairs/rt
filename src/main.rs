@@ -5,7 +5,7 @@ use camera::Camera;
 use colour::Colour;
 use hittable::{Hittable, HittableList, Sphere};
 use ray::Ray;
-use v3::{random_in_unit_sphere, V3};
+use v3::{random_unit_vector, V3};
 
 mod camera;
 mod colour;
@@ -60,7 +60,7 @@ where
     }
 
     if let Some(hit_record) = world.hit(ray, 0.0, f64::INFINITY) {
-        let target = hit_record.point + hit_record.normal + random_in_unit_sphere();
+        let target = hit_record.point + hit_record.normal + random_unit_vector();
         let new_ray = Ray::new(hit_record.point, target - hit_record.point);
         return 0.5 * ray_colour(&new_ray, world, depth - 1);
     }
