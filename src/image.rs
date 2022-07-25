@@ -1,4 +1,5 @@
 use crate::colour::Colour;
+use rayon::prelude::*;
 
 pub fn print_image(width: u64, height: u64, image: Vec<Vec<Colour>>) {
     print!("P3\n{width} {height}\n255\n");
@@ -39,7 +40,7 @@ where
     F: FnMut(u64, u64) -> Colour,
 {
     return (0..height)
-        .into_iter()
+        .par_iter()
         .map(|row| {
             return (0..width)
                 .into_iter()
