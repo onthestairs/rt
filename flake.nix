@@ -28,12 +28,18 @@
         # Build *just* the cargo dependencies, so we can reuse
         # all of that work (e.g. via cachix) when running in CI
         cargoArtifacts = craneLib.buildDepsOnly {
+          buildInputs = [
+            pkgs.libiconv
+          ];
           inherit src;
         };
 
         # Build the actual crate itself, reusing the dependency
         # artifacts from above.
         rt = craneLib.buildPackage {
+          buildInputs = [
+            pkgs.libiconv
+          ];
           inherit cargoArtifacts src;
         };
       in
@@ -75,6 +81,7 @@
           inputsFrom = builtins.attrValues self.checks;
 
           buildInputs = [
+            pkgs.libiconv
           ];
           nativeBuildInputs = with pkgs; [
             cargo
