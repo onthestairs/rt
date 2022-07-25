@@ -1,9 +1,9 @@
-use material::{Dielectric, Lambertian, Metal};
+use material::{Dielectric, Lambertian, Material, Metal};
 use rand;
 use std::rc::Rc;
 
 use camera::Camera;
-use colour::Colour;
+use colour::{random_colour, Colour};
 use hittable::{Hittable, HittableList, Sphere};
 use ray::Ray;
 use v3::V3;
@@ -16,54 +16,79 @@ mod material;
 mod ray;
 mod v3;
 
+fn scale(proportion: f64, min: f64, max: f64) -> f64 {
+    return min + proportion * (max - min);
+}
+
+fn random_scene() -> HittableList {
+    let mut world = HittableList::new();
+
+    let ground_material = Rc::new(Lambertian::new(Colour::new(0.5, 0.5, 0.5)));
+    let ground_sphere = Sphere::new(V3::new(0.0, -1000.0, 0.0), 1000.0, ground_material);
+    world.add(Rc::new(ground_sphere));
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let centre = V3::new(
+                a as f64 + 0.9 * rand::random::<f64>(),
+                0.2,
+                b as f64 + 0.9 * rand::random::<f64>(),
+            );
+            let material_choice: f64 = rand::random();
+            // point3 center(a + 0.9*random_double(), 0.2, b + 0.9*random_double());
+
+            if (centre - V3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                let material: Rc<dyn Material> = if material_choice < 0.8 {
+                    // lambertian
+                    let albedo = random_colour() * random_colour();
+                    Rc::new(Lambertian::new(albedo))
+                } else if material_choice < 0.95 {
+                    // metal
+                    let albedo = random_colour() * random_colour();
+                    let fuzz = scale(rand::random(), 0.5, 1.0);
+                    Rc::new(Metal::new(albedo, fuzz))
+                } else {
+                    // glass
+                    Rc::new(Dielectric::new(1.5))
+                };
+                let sphere = Sphere::new(centre, 0.2, material);
+                world.add(Rc::new(sphere));
+            }
+        }
+    }
+
+    let material1 = Rc::new(Dielectric::new(1.5));
+    let sphere1 = Sphere::new(V3::new(0.0, 1.0, 0.0), 1.0, material1);
+    world.add(Rc::new(sphere1));
+
+    let material2 = Rc::new(Lambertian::new(Colour::new(0.4, 0.2, 0.1)));
+    let sphere2 = Sphere::new(V3::new(-4.0, 1.0, 0.0), 1.0, material2);
+    world.add(Rc::new(sphere2));
+
+    let material3 = Rc::new(Metal::new(Colour::new(0.7, 0.6, 0.5), 0.0));
+    let sphere3 = Sphere::new(V3::new(4.0, 1.0, 0.0), 1.0, material3);
+    world.add(Rc::new(sphere3));
+
+    return world;
+}
+
 fn main() {
     // image
     let aspect_ratio: f64 = 16.0 / 9.0;
-    let image_width: u64 = 400;
+    let image_width: u64 = 1200;
     let image_height = (image_width as f64 / aspect_ratio) as u64;
-    let samples_per_pixel = 100;
+    let samples_per_pixel = 500;
     let max_depth = 50;
 
     // world
-    let mut world = HittableList::new();
-
-    let material_ground = Rc::new(Lambertian::new(Colour::new(0.8, 0.8, 0.0)));
-    let material_centre = Rc::new(Lambertian::new(Colour::new(0.1, 0.2, 0.5)));
-    let material_left = Rc::new(Dielectric::new(1.5));
-    let material_right = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2), 0.0));
-
-    world.add(Rc::new(Sphere::new(
-        V3::new(0.0, -100.5, -1.0),
-        100.0,
-        material_ground,
-    )));
-    world.add(Rc::new(Sphere::new(
-        V3::new(0.0, 0.0, -1.0),
-        0.5,
-        material_centre,
-    )));
-    world.add(Rc::new(Sphere::new(
-        V3::new(-1.0, 0.0, -1.0),
-        0.5,
-        material_left.clone(),
-    )));
-    world.add(Rc::new(Sphere::new(
-        V3::new(-1.0, 0.0, -1.0),
-        -0.45,
-        material_left.clone(),
-    )));
-    world.add(Rc::new(Sphere::new(
-        V3::new(1.0, 0.0, -1.0),
-        0.5,
-        material_right,
-    )));
+    let world = random_scene();
 
     // camera
-    let look_from = V3::new(3.0, 3.0, 2.0);
-    let look_at = V3::new(0.0, 0.0, -1.0);
+    let look_from = V3::new(13.0, 2.0, 3.0);
+    let look_at = V3::new(0.0, 0.0, 0.0);
     let view_up = V3::new(0.0, 1.0, 0.0);
-    let dist_to_focus = (look_from - look_at).length();
-    let aperture = 2.0;
+    let dist_to_focus = 10.0;
+    let aperture = 0.1;
 
     let camera = Camera::new(
         look_from,

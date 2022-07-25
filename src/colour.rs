@@ -68,3 +68,11 @@ impl Div<f64> for Colour {
         };
     }
 }
+
+pub fn random_colour() -> Colour {
+    return Colour {
+        red: rand::random(),
+        green: rand::random(),
+        blue: rand::random(),
+    };
+}
