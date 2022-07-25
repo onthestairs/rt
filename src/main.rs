@@ -1,3 +1,5 @@
+use std::num;
+
 use colour::Colour;
 use ray::Ray;
 use v3::V3;
@@ -38,18 +40,35 @@ fn main() {
     image::print_image(image_width, image_height, i);
 }
 
-fn hit_sphere(centre: V3, radius: f64, ray: &Ray) -> bool {
+/// Try to hit the given sphere with the ray
+/// Return the `t` value where the ray first hits
+fn hit_sphere(centre: V3, radius: f64, ray: &Ray) -> Option<f64> {
     let oc = ray.origin - centre;
     let a = V3::dot(ray.direction, ray.direction);
     let b = 2.0 * V3::dot(oc, ray.direction);
     let c = V3::dot(oc, oc) - radius * radius;
     let discriminant = b * b - 4.0 * a * c;
-    return discriminant > 0.0;
+    if discriminant > 0.0 {
+        // your classic quadratic formula
+        let t = (-b - f64::sqrt(discriminant)) / (2.0 * a);
+        return Some(t);
+    } else {
+        return None;
+    }
 }
 
 fn ray_colour(ray: Ray) -> colour::Colour {
-    if hit_sphere(V3::new(0.0, 0.0, -1.0), 0.5, &ray) {
-        return Colour::new(1.0, 0.0, 0.0);
+    if let Some(t) = hit_sphere(V3::new(0.0, 0.0, -1.0), 0.5, &ray) {
+        if t > 0.0 {
+            let normal = ray.at(t) - V3::new(0.0, 0.0, -1.0);
+            let unit_normal = normal.unit_vector();
+            return 0.5
+                * Colour::new(
+                    unit_normal.x + 1.0,
+                    unit_normal.y + 1.0,
+                    unit_normal.z + 1.0,
+                );
+        }
     }
     let unit_direction = v3::unit_vector(ray.direction);
     let t = 0.5 * (unit_direction.y + 1.0);

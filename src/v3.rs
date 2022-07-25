@@ -20,6 +20,10 @@ impl V3 {
         return f64::sqrt(self.length_squared());
     }
 
+    pub fn unit_vector(self) -> V3 {
+        return self / self.length();
+    }
+
     pub fn dot(a: V3, b: V3) -> f64 {
         return a.x * b.x + a.y * b.y + a.z * b.z;
     }
