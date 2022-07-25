@@ -10,7 +10,7 @@ impl Ray {
         return Ray { origin, direction };
     }
 
-    pub fn at(self, t: f64) -> V3 {
+    pub fn at(&self, t: f64) -> V3 {
         return self.origin + t * self.direction;
     }
 }

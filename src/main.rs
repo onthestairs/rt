@@ -1,10 +1,12 @@
 use std::num;
 
 use colour::Colour;
+use hittable::{Hittable, Sphere};
 use ray::Ray;
 use v3::V3;
 
 mod colour;
+mod hittable;
 mod image;
 mod ray;
 mod v3;
@@ -58,17 +60,15 @@ fn hit_sphere(centre: V3, radius: f64, ray: &Ray) -> Option<f64> {
 }
 
 fn ray_colour(ray: Ray) -> colour::Colour {
-    if let Some(t) = hit_sphere(V3::new(0.0, 0.0, -1.0), 0.5, &ray) {
-        if t > 0.0 {
-            let normal = ray.at(t) - V3::new(0.0, 0.0, -1.0);
-            let unit_normal = normal.unit_vector();
-            return 0.5
-                * Colour::new(
-                    unit_normal.x + 1.0,
-                    unit_normal.y + 1.0,
-                    unit_normal.z + 1.0,
-                );
-        }
+    let sphere = Sphere::new(V3::new(0.0, 0.0, -1.0), 0.5);
+    if let Some(hit_record) = sphere.hit(&ray, 0.0, 2000.0) {
+        let unit_normal = hit_record.normal.unit_vector();
+        return 0.5
+            * Colour::new(
+                unit_normal.x + 1.0,
+                unit_normal.y + 1.0,
+                unit_normal.z + 1.0,
+            );
     }
     let unit_direction = v3::unit_vector(ray.direction);
     let t = 0.5 * (unit_direction.y + 1.0);
