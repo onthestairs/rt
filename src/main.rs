@@ -42,7 +42,8 @@ fn main() {
             colour = colour + ray_colour(&ray, &world, max_depth);
         }
         eprintln!("Finished pixel");
-        return colour / (samples_per_pixel as f64);
+        let final_colour = colour / (samples_per_pixel as f64);
+        return final_colour.gamma_correct(1.0 / samples_per_pixel as f64);
 
         // color pixel_color = ray_color(r);
         // write_color(std::cout, pixel_color);

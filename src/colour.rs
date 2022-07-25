@@ -10,6 +10,14 @@ impl Colour {
     pub fn new(red: f64, green: f64, blue: f64) -> Self {
         return Colour { red, green, blue };
     }
+
+    pub fn gamma_correct(self, scale: f64) -> Colour {
+        return Colour {
+            red: f64::sqrt(self.red * scale),
+            green: f64::sqrt(self.red * scale),
+            blue: f64::sqrt(self.red * scale),
+        };
+    }
 }
 
 impl Add for Colour {
