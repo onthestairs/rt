@@ -1,3 +1,4 @@
+use material::{Lambertian, Metal};
 use rand;
 use std::rc::Rc;
 
@@ -11,6 +12,7 @@ mod camera;
 mod colour;
 mod hittable;
 mod image;
+mod material;
 mod ray;
 mod v3;
 
@@ -24,8 +26,33 @@ fn main() {
 
     // world
     let mut world = HittableList::new();
-    world.add(Rc::new(Sphere::new(V3::new(0.0, 0.0, -1.0), 0.5)));
-    world.add(Rc::new(Sphere::new(V3::new(0.0, -100.5, -1.0), 100.0)));
+
+    // let material_ground = Rc::new<lambertian>(color(0.8, 0.8, 0.0));
+    let material_ground = Rc::new(Lambertian::new(Colour::new(0.8, 0.8, 0.0)));
+    let material_centre = Rc::new(Lambertian::new(Colour::new(0.7, 0.3, 0.3)));
+    let material_left = Rc::new(Metal::new(Colour::new(0.8, 0.8, 0.8)));
+    let material_right = Rc::new(Metal::new(Colour::new(0.8, 0.8, 0.2)));
+
+    world.add(Rc::new(Sphere::new(
+        V3::new(0.0, -100.5, -1.0),
+        100.0,
+        material_ground,
+    )));
+    world.add(Rc::new(Sphere::new(
+        V3::new(0.0, 0.0, -1.0),
+        0.5,
+        material_centre,
+    )));
+    world.add(Rc::new(Sphere::new(
+        V3::new(-1.0, 0.0, -1.0),
+        0.5,
+        material_left,
+    )));
+    world.add(Rc::new(Sphere::new(
+        V3::new(1.0, 0.0, -1.0),
+        0.5,
+        material_right,
+    )));
 
     // camera
     let camera = Camera::new();
@@ -41,7 +68,6 @@ fn main() {
             let ray = camera.get_ray(u, v);
             colour = colour + ray_colour(&ray, &world, max_depth);
         }
-        eprintln!("Finished pixel");
         let final_colour = colour / (samples_per_pixel as f64);
         return final_colour.gamma_correct(1.0 / samples_per_pixel as f64);
 
@@ -60,9 +86,14 @@ where
     }
 
     if let Some(hit_record) = world.hit(ray, 0.0, f64::INFINITY) {
-        let target = hit_record.point + hit_record.normal + random_unit_vector();
-        let new_ray = Ray::new(hit_record.point, target - hit_record.point);
-        return 0.5 * ray_colour(&new_ray, world, depth - 1);
+        if let Some((scattered_ray, attenuation)) = hit_record.material.scatter(ray, &hit_record) {
+            return attenuation * ray_colour(&scattered_ray, world, depth - 1);
+        } else {
+            return Colour::new(0.0, 0.0, 0.0);
+        }
+        // let target = hit_record.point + hit_record.normal + random_unit_vector();
+        // let new_ray = Ray::new(hit_record.point, target - hit_record.point);
+        // return 0.5 * ray_colour(&new_ray, world, depth - 1);
     }
     let unit_direction = v3::unit_vector(ray.direction);
     let t = 0.5 * (unit_direction.y + 1.0);

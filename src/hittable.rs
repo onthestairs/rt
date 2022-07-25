@@ -1,17 +1,24 @@
 use std::rc::Rc;
 
-use crate::{ray::Ray, v3::V3};
+use crate::{material::Material, ray::Ray, v3::V3};
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct HitRecord {
     pub point: V3,
     pub normal: V3,
     pub t: f64,
     pub front_face: bool,
+    pub material: Rc<dyn Material>,
 }
 
 impl HitRecord {
-    pub fn new(t: f64, point: V3, outward_normal: V3, ray_direction: V3) -> Self {
+    pub fn new(
+        t: f64,
+        point: V3,
+        outward_normal: V3,
+        ray_direction: V3,
+        material: Rc<dyn Material>,
+    ) -> Self {
         let front_face = V3::dot(ray_direction, outward_normal) < 0.0;
         let normal = if front_face {
             outward_normal
@@ -23,6 +30,7 @@ impl HitRecord {
             point,
             normal,
             front_face,
+            material,
         };
     }
 }
@@ -61,11 +69,16 @@ impl Hittable for HittableList {
 pub struct Sphere {
     centre: V3,
     radius: f64,
+    material: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(centre: V3, radius: f64) -> Self {
-        return Sphere { centre, radius };
+    pub fn new(centre: V3, radius: f64, material: Rc<dyn Material>) -> Self {
+        return Sphere {
+            centre,
+            radius,
+            material,
+        };
     }
 }
 
@@ -94,7 +107,13 @@ impl Hittable for Sphere {
 
         let point = ray.at(t);
         let outward_normal = (point - self.centre) / self.radius;
-        let hit_record = HitRecord::new(t, point, outward_normal, ray.direction);
+        let hit_record = HitRecord::new(
+            t,
+            point,
+            outward_normal,
+            ray.direction,
+            self.material.clone(),
+        );
         return Some(hit_record);
     }
 }

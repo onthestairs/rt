@@ -1,5 +1,6 @@
 use std::ops::{Add, Div, Mul};
 
+#[derive(Clone, Copy)]
 pub struct Colour {
     pub red: f64,
     pub green: f64,
@@ -14,8 +15,8 @@ impl Colour {
     pub fn gamma_correct(self, scale: f64) -> Colour {
         return Colour {
             red: f64::sqrt(self.red * scale),
-            green: f64::sqrt(self.red * scale),
-            blue: f64::sqrt(self.red * scale),
+            green: f64::sqrt(self.green * scale),
+            blue: f64::sqrt(self.blue * scale),
         };
     }
 }
@@ -40,6 +41,18 @@ impl Mul<Colour> for f64 {
             red: c.red * self,
             green: c.green * self,
             blue: c.blue * self,
+        };
+    }
+}
+
+impl Mul<Colour> for Colour {
+    type Output = Colour;
+
+    fn mul(self, other: Colour) -> Self::Output {
+        return Colour {
+            red: self.red * other.red,
+            green: self.green * other.green,
+            blue: self.blue * other.blue,
         };
     }
 }

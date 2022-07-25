@@ -27,6 +27,11 @@ impl V3 {
     pub fn dot(a: V3, b: V3) -> f64 {
         return a.x * b.x + a.y * b.y + a.z * b.z;
     }
+
+    pub fn near_zero(self) -> bool {
+        let threshold = 1e-8;
+        return self.x < threshold && self.y < threshold && self.x < threshold;
+    }
 }
 
 impl Neg for V3 {
@@ -116,4 +121,8 @@ pub fn random_in_unit_sphere() -> V3 {
 
 pub fn random_unit_vector() -> V3 {
     return unit_vector(random_in_unit_sphere());
+}
+
+pub fn reflect(v: V3, n: V3) -> V3 {
+    return v - 2.0 * V3::dot(v, n) * n;
 }
