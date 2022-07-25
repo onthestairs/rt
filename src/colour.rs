@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul};
+use std::ops::{Add, Div, Mul};
 
 pub struct Colour {
     pub red: f64,
@@ -32,6 +32,18 @@ impl Mul<Colour> for f64 {
             red: c.red * self,
             green: c.green * self,
             blue: c.blue * self,
+        };
+    }
+}
+
+impl Div<f64> for Colour {
+    type Output = Colour;
+
+    fn div(self, s: f64) -> Self::Output {
+        return Colour {
+            red: self.red / s,
+            green: self.green / s,
+            blue: self.blue / s,
         };
     }
 }
