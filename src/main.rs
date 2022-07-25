@@ -29,8 +29,8 @@ fn main() {
 
     let material_ground = Rc::new(Lambertian::new(Colour::new(0.8, 0.8, 0.0)));
     let material_centre = Rc::new(Lambertian::new(Colour::new(0.7, 0.3, 0.3)));
-    let material_left = Rc::new(Metal::new(Colour::new(0.8, 0.8, 0.8)));
-    let material_right = Rc::new(Metal::new(Colour::new(0.8, 0.8, 0.2)));
+    let material_left = Rc::new(Metal::new(Colour::new(0.8, 0.8, 0.8), 0.3));
+    let material_right = Rc::new(Metal::new(Colour::new(0.8, 0.8, 0.2), 0.1));
 
     world.add(Rc::new(Sphere::new(
         V3::new(0.0, -100.5, -1.0),
