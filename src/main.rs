@@ -45,7 +45,12 @@ fn main() {
     world.add(Rc::new(Sphere::new(
         V3::new(-1.0, 0.0, -1.0),
         0.5,
-        material_left,
+        material_left.clone(),
+    )));
+    world.add(Rc::new(Sphere::new(
+        V3::new(-1.0, 0.0, -1.0),
+        -0.45,
+        material_left.clone(),
     )));
     world.add(Rc::new(Sphere::new(
         V3::new(1.0, 0.0, -1.0),
@@ -54,7 +59,13 @@ fn main() {
     )));
 
     // camera
-    let camera = Camera::new();
+    let camera = Camera::new(
+        V3::new(-2.0, 2.0, 1.0),
+        V3::new(0.0, 0.0, -1.0),
+        V3::new(0.0, 1.0, 0.0),
+        20.0,
+        aspect_ratio,
+    );
 
     // render
     let i = image::generate_image(image_width, image_height, |row, col| {

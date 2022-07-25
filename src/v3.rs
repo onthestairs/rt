@@ -28,6 +28,14 @@ impl V3 {
         return a.x * b.x + a.y * b.y + a.z * b.z;
     }
 
+    pub fn cross(a: V3, b: V3) -> V3 {
+        return V3 {
+            x: a.y * b.z - a.z * b.y,
+            y: a.z * b.x - a.x * b.z,
+            z: a.x * b.y - a.y * b.x,
+        };
+    }
+
     pub fn near_zero(self) -> bool {
         let threshold = 1e-8;
         return self.x < threshold && self.y < threshold && self.x < threshold;
