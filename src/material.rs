@@ -1,3 +1,5 @@
+use std::cmp;
+
 use crate::{
     colour::Colour,
     hittable::HitRecord,
@@ -56,5 +58,49 @@ impl Material for Metal {
             return None;
         }
         return Some((scattered, self.albedo));
+    }
+}
+
+pub struct Dielectric {
+    index_of_refraction: f64,
+}
+
+impl Dielectric {
+    pub fn new(index_of_refraction: f64) -> Self {
+        return Dielectric {
+            index_of_refraction,
+        };
+    }
+}
+
+fn refract(uv: V3, n: V3, etai_over_etat: f64) -> V3 {
+    let cos_theta = f64::min(V3::dot(-uv, n), 1.0);
+    let r_out_perp = etai_over_etat * (uv + cos_theta * n);
+    let r_out_parallel = -f64::sqrt(f64::abs(1.0 - r_out_perp.length_squared())) * n;
+    return r_out_perp + r_out_parallel;
+}
+
+impl Material for Dielectric {
+    fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<(Ray, Colour)> {
+        let attenuation = Colour::new(1.0, 1.0, 1.0);
+        let refraction_ratio = if hit_record.front_face {
+            1.0 / self.index_of_refraction
+        } else {
+            self.index_of_refraction
+        };
+        let unit_direction = unit_vector(ray_in.direction);
+
+        let cos_theta = f64::min(V3::dot(-unit_direction, hit_record.normal), 1.0);
+        let sin_theta = f64::sqrt(1.0 - cos_theta * cos_theta);
+        // due to snells law, and a sin cannot be bigger than 0
+        let cannot_refract = refraction_ratio * sin_theta > 1.0;
+        let direction = if cannot_refract {
+            reflect(unit_direction, hit_record.normal)
+        } else {
+            refract(unit_direction, hit_record.normal, refraction_ratio)
+        };
+
+        let scattered_ray = Ray::new(hit_record.point, direction);
+        return Some((scattered_ray, attenuation));
     }
 }
