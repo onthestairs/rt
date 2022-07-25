@@ -44,7 +44,7 @@ impl Material for Metal {
     fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<(Ray, Colour)> {
         let reflected = reflect(unit_vector(ray_in.direction), hit_record.normal);
         let scattered = Ray::new(hit_record.point, reflected);
-        if V3::dot(scattered.direction, hit_record.normal) > 0.0 {
+        if V3::dot(scattered.direction, hit_record.normal) <= 0.0 {
             return None;
         }
         return Some((scattered, self.albedo));

@@ -7,10 +7,20 @@ pub fn print_image(width: u64, height: u64, image: Vec<Vec<Colour>>) {
     })
 }
 
+fn clamp(x: f64, min: f64, max: f64) -> f64 {
+    if x < min {
+        return min;
+    };
+    if x > max {
+        return max;
+    };
+    return x;
+}
+
 fn print_colour(colour: &Colour) {
-    let red = (colour.red * 255.0) as u64;
-    let green = (colour.green * 255.0) as u64;
-    let blue = (colour.blue * 255.0) as u64;
+    let red = (clamp(colour.red, 0.0, 0.999) * 256.0) as u64;
+    let green = (clamp(colour.green, 0.0, 0.999) * 256.0) as u64;
+    let blue = (clamp(colour.blue, 0.0, 0.999) * 256.0) as u64;
     println!("{red} {green} {blue}");
 }
 
