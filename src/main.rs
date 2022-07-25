@@ -59,12 +59,20 @@ fn main() {
     )));
 
     // camera
+    let look_from = V3::new(3.0, 3.0, 2.0);
+    let look_at = V3::new(0.0, 0.0, -1.0);
+    let view_up = V3::new(0.0, 1.0, 0.0);
+    let dist_to_focus = (look_from - look_at).length();
+    let aperture = 2.0;
+
     let camera = Camera::new(
-        V3::new(-2.0, 2.0, 1.0),
-        V3::new(0.0, 0.0, -1.0),
-        V3::new(0.0, 1.0, 0.0),
+        look_from,
+        look_at,
+        view_up,
         20.0,
         aspect_ratio,
+        aperture,
+        dist_to_focus,
     );
 
     // render

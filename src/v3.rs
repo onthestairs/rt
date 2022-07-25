@@ -114,13 +114,23 @@ pub fn random_vector(min: f64, max: f64) -> V3 {
     return V3 {
         x: scale(rand::random(), min, max),
         y: scale(rand::random(), min, max),
-        z: rand::random(),
+        z: scale(rand::random(), min, max),
     };
 }
 
 pub fn random_in_unit_sphere() -> V3 {
     loop {
         let v = random_vector(-1.0, 1.0);
+        if v.length_squared() < 1.0 {
+            return v;
+        }
+    }
+}
+
+pub fn random_in_unit_disk() -> V3 {
+    loop {
+        let mut v = random_vector(-1.0, 1.0);
+        v.z = 0.0;
         if v.length_squared() < 1.0 {
             return v;
         }
