@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Clone, Copy)]
 pub struct V3 {
@@ -26,6 +26,18 @@ impl V3 {
 
     pub fn dot(a: V3, b: V3) -> f64 {
         return a.x * b.x + a.y * b.y + a.z * b.z;
+    }
+}
+
+impl Neg for V3 {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        return V3 {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        };
     }
 }
 
