@@ -1,6 +1,6 @@
 use material::{Dielectric, Lambertian, Material, Metal};
 use rand;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use camera::Camera;
 use colour::{random_colour, Colour};
@@ -23,9 +23,9 @@ fn scale(proportion: f64, min: f64, max: f64) -> f64 {
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
 
-    let ground_material = Rc::new(Lambertian::new(Colour::new(0.5, 0.5, 0.5)));
+    let ground_material = Arc::new(Lambertian::new(Colour::new(0.5, 0.5, 0.5)));
     let ground_sphere = Sphere::new(V3::new(0.0, -1000.0, 0.0), 1000.0, ground_material);
-    world.add(Rc::new(ground_sphere));
+    world.add(Arc::new(ground_sphere));
 
     for a in -11..11 {
         for b in -11..11 {
@@ -38,36 +38,36 @@ fn random_scene() -> HittableList {
             // point3 center(a + 0.9*random_double(), 0.2, b + 0.9*random_double());
 
             if (centre - V3::new(4.0, 0.2, 0.0)).length() > 0.9 {
-                let material: Rc<dyn Material> = if material_choice < 0.8 {
+                let material: Arc<dyn Material + Send + Sync> = if material_choice < 0.8 {
                     // lambertian
                     let albedo = random_colour() * random_colour();
-                    Rc::new(Lambertian::new(albedo))
+                    Arc::new(Lambertian::new(albedo))
                 } else if material_choice < 0.95 {
                     // metal
                     let albedo = random_colour() * random_colour();
                     let fuzz = scale(rand::random(), 0.5, 1.0);
-                    Rc::new(Metal::new(albedo, fuzz))
+                    Arc::new(Metal::new(albedo, fuzz))
                 } else {
                     // glass
-                    Rc::new(Dielectric::new(1.5))
+                    Arc::new(Dielectric::new(1.5))
                 };
                 let sphere = Sphere::new(centre, 0.2, material);
-                world.add(Rc::new(sphere));
+                world.add(Arc::new(sphere));
             }
         }
     }
 
-    let material1 = Rc::new(Dielectric::new(1.5));
+    let material1 = Arc::new(Dielectric::new(1.5));
     let sphere1 = Sphere::new(V3::new(0.0, 1.0, 0.0), 1.0, material1);
-    world.add(Rc::new(sphere1));
+    world.add(Arc::new(sphere1));
 
-    let material2 = Rc::new(Lambertian::new(Colour::new(0.4, 0.2, 0.1)));
+    let material2 = Arc::new(Lambertian::new(Colour::new(0.4, 0.2, 0.1)));
     let sphere2 = Sphere::new(V3::new(-4.0, 1.0, 0.0), 1.0, material2);
-    world.add(Rc::new(sphere2));
+    world.add(Arc::new(sphere2));
 
-    let material3 = Rc::new(Metal::new(Colour::new(0.7, 0.6, 0.5), 0.0));
+    let material3 = Arc::new(Metal::new(Colour::new(0.7, 0.6, 0.5), 0.0));
     let sphere3 = Sphere::new(V3::new(4.0, 1.0, 0.0), 1.0, material3);
-    world.add(Rc::new(sphere3));
+    world.add(Arc::new(sphere3));
 
     return world;
 }
@@ -108,7 +108,7 @@ fn main() {
             let v_d: f64 = rand::random();
             let u = (col as f64 + u_d) / (image_width as f64 - 1.0);
             let v = (row as f64 + v_d) / (image_height as f64 - 1.0);
-            let ray = camera.get_ray(u, v);
+            let ray = &camera.get_ray(u, v);
             colour = colour + ray_colour(&ray, &world, max_depth);
         }
         return colour.gamma_correct(1.0 / samples_per_pixel as f64);
@@ -118,7 +118,7 @@ fn main() {
 
 fn ray_colour<T>(ray: &Ray, world: &T, depth: u64) -> colour::Colour
 where
-    T: Hittable,
+    T: Hittable + Sync,
 {
     if depth <= 0 {
         return Colour::new(0.0, 0.0, 0.0);

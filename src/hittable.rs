@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{material::Material, ray::Ray, v3::V3};
 
@@ -8,7 +8,7 @@ pub struct HitRecord {
     pub normal: V3,
     pub t: f64,
     pub front_face: bool,
-    pub material: Rc<dyn Material>,
+    pub material: Arc<dyn Material + Sync + Send>,
 }
 
 impl HitRecord {
@@ -17,7 +17,7 @@ impl HitRecord {
         point: V3,
         outward_normal: V3,
         ray_direction: V3,
-        material: Rc<dyn Material>,
+        material: Arc<dyn Material + Sync + Send>,
     ) -> Self {
         let front_face = V3::dot(ray_direction, outward_normal) < 0.0;
         let normal = if front_face {
@@ -40,14 +40,14 @@ pub trait Hittable {
 }
 
 pub struct HittableList {
-    hittables: Vec<Rc<dyn Hittable>>,
+    hittables: Vec<Arc<dyn Hittable + Sync + Send>>,
 }
 
 impl HittableList {
     pub fn new() -> Self {
         return HittableList { hittables: vec![] };
     }
-    pub fn add(&mut self, hittable: Rc<dyn Hittable>) {
+    pub fn add(&mut self, hittable: Arc<dyn Hittable + Sync + Send>) {
         self.hittables.push(hittable);
     }
 }
@@ -69,11 +69,11 @@ impl Hittable for HittableList {
 pub struct Sphere {
     centre: V3,
     radius: f64,
-    material: Rc<dyn Material>,
+    material: Arc<dyn Material + Sync + Send>,
 }
 
 impl Sphere {
-    pub fn new(centre: V3, radius: f64, material: Rc<dyn Material>) -> Self {
+    pub fn new(centre: V3, radius: f64, material: Arc<dyn Material + Sync + Send>) -> Self {
         return Sphere {
             centre,
             radius,

@@ -35,15 +35,15 @@ pub fn generate_gradient(width: u64, height: u64) -> Vec<Vec<Colour>> {
     });
 }
 
-pub fn generate_image<F>(width: u64, height: u64, mut f: F) -> Vec<Vec<Colour>>
+pub fn generate_image<F>(width: u64, height: u64, f: F) -> Vec<Vec<Colour>>
 where
-    F: FnMut(u64, u64) -> Colour,
+    F: Fn(u64, u64) -> Colour + Sync,
 {
     return (0..height)
-        .par_iter()
+        .into_par_iter()
         .map(|row| {
             return (0..width)
-                .into_iter()
+                .into_par_iter()
                 .map(|col| {
                     return f(row, col);
                 })
