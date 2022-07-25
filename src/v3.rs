@@ -92,3 +92,24 @@ impl Div<f64> for V3 {
 pub fn unit_vector(v: V3) -> V3 {
     return v / v.length();
 }
+
+fn scale(proportion: f64, min: f64, max: f64) -> f64 {
+    return min + proportion * (max - min);
+}
+
+pub fn random_vector(min: f64, max: f64) -> V3 {
+    return V3 {
+        x: scale(rand::random(), min, max),
+        y: scale(rand::random(), min, max),
+        z: rand::random(),
+    };
+}
+
+pub fn random_in_unit_sphere() -> V3 {
+    loop {
+        let v = random_vector(-1.0, 1.0);
+        if v.length_squared() < 1.0 {
+            return v;
+        }
+    }
+}

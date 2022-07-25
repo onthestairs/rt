@@ -1,11 +1,11 @@
 use rand;
-use std::{num, rc::Rc};
+use std::rc::Rc;
 
 use camera::Camera;
 use colour::Colour;
 use hittable::{Hittable, HittableList, Sphere};
 use ray::Ray;
-use v3::V3;
+use v3::{random_in_unit_sphere, V3};
 
 mod camera;
 mod colour;
@@ -15,13 +15,12 @@ mod ray;
 mod v3;
 
 fn main() {
-    let mut rng = rand::thread_rng();
-
     // image
     let aspect_ratio: f64 = 16.0 / 9.0;
     let image_width: u64 = 400;
     let image_height = (image_width as f64 / aspect_ratio) as u64;
     let samples_per_pixel = 100;
+    let max_depth = 50;
 
     // world
     let mut world = HittableList::new();
@@ -40,8 +39,9 @@ fn main() {
             let u = (col as f64 + u_d) / (image_width as f64 - 1.0);
             let v = (row as f64 + v_d) / (image_height as f64 - 1.0);
             let ray = camera.get_ray(u, v);
-            colour = colour + ray_colour(&ray, &world);
+            colour = colour + ray_colour(&ray, &world, max_depth);
         }
+        eprintln!("Finished pixel");
         return colour / (samples_per_pixel as f64);
 
         // color pixel_color = ray_color(r);
@@ -50,13 +50,18 @@ fn main() {
     image::print_image(image_width, image_height, i);
 }
 
-fn ray_colour<T>(ray: &Ray, world: &T) -> colour::Colour
+fn ray_colour<T>(ray: &Ray, world: &T, depth: u64) -> colour::Colour
 where
     T: Hittable,
 {
+    if depth <= 0 {
+        return Colour::new(0.0, 0.0, 0.0);
+    }
+
     if let Some(hit_record) = world.hit(ray, 0.0, f64::INFINITY) {
-        let n = hit_record.normal;
-        return 0.5 * (Colour::new(n.x + 1.0, n.y + 1.0, n.z + 1.0));
+        let target = hit_record.point + hit_record.normal + random_in_unit_sphere();
+        let new_ray = Ray::new(hit_record.point, target - hit_record.point);
+        return 0.5 * ray_colour(&new_ray, world, depth - 1);
     }
     let unit_direction = v3::unit_vector(ray.direction);
     let t = 0.5 * (unit_direction.y + 1.0);
