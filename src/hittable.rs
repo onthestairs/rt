@@ -6,14 +6,18 @@ use crate::{material::Material, ray::Ray, v3::V3};
 pub struct HitRecord {
     pub point: V3,
     pub normal: V3,
-    pub t: f64,
+    pub time: f64,
+    pub u: f64,
+    pub v: f64,
     pub front_face: bool,
     pub material: Arc<dyn Material + Sync + Send>,
 }
 
 impl HitRecord {
     pub fn new(
-        t: f64,
+        time: f64,
+        u: f64,
+        v: f64,
         point: V3,
         outward_normal: V3,
         ray_direction: V3,
@@ -26,7 +30,9 @@ impl HitRecord {
             -outward_normal
         };
         return HitRecord {
-            t,
+            time,
+            u,
+            v,
             point,
             normal,
             front_face,
@@ -59,7 +65,7 @@ impl Hittable for HittableList {
         for hittable in &self.hittables {
             if let Some(hittable_record) = hittable.hit(ray, t_min, closest_t) {
                 record = Some(hittable_record.clone());
-                closest_t = hittable_record.t;
+                closest_t = hittable_record.time;
             }
         }
         return record;
@@ -79,6 +85,22 @@ impl Sphere {
             radius,
             material,
         };
+    }
+
+    fn get_sphere_uv(&self, p: V3) -> (f64, f64) {
+        // p: a given point on the sphere of radius one, centered at the origin.
+        // u: returned value [0,1] of angle around the Y axis from X=-1.
+        // v: returned value [0,1] of angle from Y=-1 to Y=+1.
+        //     <1 0 0> yields <0.50 0.50>       <-1  0  0> yields <0.00 0.50>
+        //     <0 1 0> yields <0.50 1.00>       < 0 -1  0> yields <0.50 0.00>
+        //     <0 0 1> yields <0.25 0.50>       < 0  0 -1> yields <0.75 0.50>
+
+        let theta = f64::acos(-p.y);
+        let phi = f64::atan2(-p.z, p.x) + std::f64::consts::PI;
+
+        let u = phi / (2.0 * std::f64::consts::PI);
+        let v = theta / std::f64::consts::PI;
+        return (u, v);
     }
 }
 
@@ -107,8 +129,11 @@ impl Hittable for Sphere {
 
         let point = ray.at(t);
         let outward_normal = (point - self.centre) / self.radius;
+        let (u, v) = self.get_sphere_uv(point);
         let hit_record = HitRecord::new(
             t,
+            u,
+            v,
             point,
             outward_normal,
             ray.direction,

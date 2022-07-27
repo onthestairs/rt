@@ -1,6 +1,7 @@
 use material::{Dielectric, Lambertian, Material, Metal};
 use rand;
 use std::sync::Arc;
+use texture::Checkers;
 
 use camera::Camera;
 use colour::{random_colour, Colour};
@@ -14,6 +15,7 @@ mod hittable;
 mod image;
 mod material;
 mod ray;
+mod texture;
 mod v3;
 
 fn scale(proportion: f64, min: f64, max: f64) -> f64 {
@@ -23,7 +25,11 @@ fn scale(proportion: f64, min: f64, max: f64) -> f64 {
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
 
-    let ground_material = Arc::new(Lambertian::new(Colour::new(0.5, 0.5, 0.5)));
+    // let ground_material = Arc::new(Lambertian::new(Colour::new(0.5, 0.5, 0.5)));
+    let ground_material = Arc::new(Lambertian::new_from_texture(Checkers::new_from_colours(
+        Colour::new(0.2, 0.3, 0.1),
+        Colour::new(0.9, 0.9, 0.9),
+    )));
     let ground_sphere = Sphere::new(V3::new(0.0, -1000.0, 0.0), 1000.0, ground_material);
     world.add(Arc::new(ground_sphere));
 
