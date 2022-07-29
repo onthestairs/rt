@@ -1,3 +1,4 @@
+use bvh::BVHNode;
 use material::{Dielectric, Lambertian, Material, Metal};
 use rand;
 use std::sync::Arc;
@@ -9,6 +10,8 @@ use hittable::{Hittable, HittableList, Sphere};
 use ray::Ray;
 use v3::V3;
 
+mod aabb;
+mod bvh;
 mod camera;
 mod colour;
 mod hittable;
@@ -22,16 +25,17 @@ fn scale(proportion: f64, min: f64, max: f64) -> f64 {
     return min + proportion * (max - min);
 }
 
-fn random_scene() -> HittableList {
-    let mut world = HittableList::new();
+fn random_scene() -> BVHNode {
+    // let mut world = HittableList::new();
+    let mut hittables: Vec<Arc<dyn Hittable + Send + Sync>> = vec![];
 
     // let ground_material = Arc::new(Lambertian::new(Colour::new(0.5, 0.5, 0.5)));
     let ground_material = Arc::new(Lambertian::new_from_texture(Checkers::new_from_colours(
-        Colour::new(0.2, 0.3, 0.1),
+        Colour::new(0.99, 0.45, 0.0),
         Colour::new(0.9, 0.9, 0.9),
     )));
     let ground_sphere = Sphere::new(V3::new(0.0, -1000.0, 0.0), 1000.0, ground_material);
-    world.add(Arc::new(ground_sphere));
+    hittables.push(Arc::new(ground_sphere));
 
     for a in -11..11 {
         for b in -11..11 {
@@ -58,22 +62,24 @@ fn random_scene() -> HittableList {
                     Arc::new(Dielectric::new(1.5))
                 };
                 let sphere = Sphere::new(centre, 0.2, material);
-                world.add(Arc::new(sphere));
+                hittables.push(Arc::new(sphere));
             }
         }
     }
 
     let material1 = Arc::new(Dielectric::new(1.5));
     let sphere1 = Sphere::new(V3::new(0.0, 1.0, 0.0), 1.0, material1);
-    world.add(Arc::new(sphere1));
+    hittables.push(Arc::new(sphere1));
 
     let material2 = Arc::new(Lambertian::new(Colour::new(0.4, 0.2, 0.1)));
     let sphere2 = Sphere::new(V3::new(-4.0, 1.0, 0.0), 1.0, material2);
-    world.add(Arc::new(sphere2));
+    hittables.push(Arc::new(sphere2));
 
     let material3 = Arc::new(Metal::new(Colour::new(0.7, 0.6, 0.5), 0.0));
     let sphere3 = Sphere::new(V3::new(4.0, 1.0, 0.0), 1.0, material3);
-    world.add(Arc::new(sphere3));
+    hittables.push(Arc::new(sphere3));
+
+    let world = BVHNode::new(hittables, 0.0, f64::INFINITY);
 
     return world;
 }

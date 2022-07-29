@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{material::Material, ray::Ray, v3::V3};
+use crate::{aabb::AABB, material::Material, ray::Ray, v3::V3};
 
 #[derive(Clone)]
 pub struct HitRecord {
@@ -43,6 +43,7 @@ impl HitRecord {
 
 pub trait Hittable {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
+    fn bounding_box(&self, t_0: f64, t_1: f64) -> Option<AABB>;
 }
 
 pub struct HittableList {
@@ -69,6 +70,21 @@ impl Hittable for HittableList {
             }
         }
         return record;
+    }
+
+    fn bounding_box(&self, t_0: f64, t_1: f64) -> Option<AABB> {
+        if self.hittables.len() == 0 {
+            return None;
+        }
+        let mut output_box = AABB::new(V3::new(0.0, 0.0, 0.0), V3::new(0.0, 0.0, 0.0));
+        for hittable in &self.hittables {
+            if let Some(hittable_box) = hittable.bounding_box(t_0, t_1) {
+                output_box = output_box + hittable_box;
+            } else {
+                return None;
+            }
+        }
+        return Some(output_box);
     }
 }
 
@@ -140,5 +156,12 @@ impl Hittable for Sphere {
             self.material.clone(),
         );
         return Some(hit_record);
+    }
+
+    fn bounding_box(&self, t_0: f64, t_1: f64) -> Option<AABB> {
+        let minimum = self.centre - V3::new(self.radius, self.radius, self.radius);
+        let maximum = self.centre + V3::new(self.radius, self.radius, self.radius);
+        let aabb = AABB::new(minimum, maximum);
+        return Some(aabb);
     }
 }
