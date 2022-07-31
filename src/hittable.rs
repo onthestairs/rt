@@ -76,8 +76,9 @@ impl Hittable for HittableList {
         if self.hittables.len() == 0 {
             return None;
         }
-        let mut output_box = AABB::new(V3::new(0.0, 0.0, 0.0), V3::new(0.0, 0.0, 0.0));
-        for hittable in &self.hittables {
+        // let mut output_box = AABB::new(V3::new(0.0, 0.0, 0.0), V3::new(0.0, 0.0, 0.0));
+        let mut output_box = self.hittables[0].bounding_box(t_0, t_1)?;
+        for hittable in &self.hittables[1..] {
             if let Some(hittable_box) = hittable.bounding_box(t_0, t_1) {
                 output_box = output_box + hittable_box;
             } else {

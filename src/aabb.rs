@@ -47,9 +47,9 @@ impl Add for AABB {
             f64::min(self.minimum.z, other.minimum.z),
         );
         let new_maximum = V3::new(
-            f64::min(self.maximum.x, other.maximum.x),
-            f64::min(self.maximum.y, other.maximum.y),
-            f64::min(self.maximum.z, other.maximum.z),
+            f64::max(self.maximum.x, other.maximum.x),
+            f64::max(self.maximum.y, other.maximum.y),
+            f64::max(self.maximum.z, other.maximum.z),
         );
         return AABB::new(new_minimum, new_maximum);
     }

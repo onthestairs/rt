@@ -25,7 +25,7 @@ fn scale(proportion: f64, min: f64, max: f64) -> f64 {
     return min + proportion * (max - min);
 }
 
-fn random_scene() -> BVHNode {
+fn random_scene_bvh() -> BVHNode {
     // let mut world = HittableList::new();
     let mut hittables: Vec<Arc<dyn Hittable + Send + Sync>> = vec![];
 
@@ -79,7 +79,63 @@ fn random_scene() -> BVHNode {
     let sphere3 = Sphere::new(V3::new(4.0, 1.0, 0.0), 1.0, material3);
     hittables.push(Arc::new(sphere3));
 
+    eprintln!("Making BVHNode");
     let world = BVHNode::new(hittables, 0.0, f64::INFINITY);
+    eprintln!("Finished making BVHNode");
+
+    return world;
+}
+
+fn random_scene_list() -> HittableList {
+    let mut world = HittableList::new();
+
+    let ground_material = Arc::new(Lambertian::new_from_texture(Checkers::new_from_colours(
+        Colour::new(0.99, 0.45, 0.0),
+        Colour::new(0.9, 0.9, 0.9),
+    )));
+    let ground_sphere = Sphere::new(V3::new(0.0, -1000.0, 0.0), 1000.0, ground_material);
+    world.add(Arc::new(ground_sphere));
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let centre = V3::new(
+                a as f64 + 0.9 * rand::random::<f64>(),
+                0.2,
+                b as f64 + 0.9 * rand::random::<f64>(),
+            );
+            let material_choice: f64 = rand::random();
+
+            if (centre - V3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                let material: Arc<dyn Material + Send + Sync> = if material_choice < 0.8 {
+                    // lambertian
+                    let albedo = random_colour() * random_colour();
+                    Arc::new(Lambertian::new(albedo))
+                } else if material_choice < 0.95 {
+                    // metal
+                    let albedo = random_colour() * random_colour();
+                    let fuzz = scale(rand::random(), 0.5, 1.0);
+                    Arc::new(Metal::new(albedo, fuzz))
+                } else {
+                    // glass
+                    Arc::new(Dielectric::new(1.5))
+                };
+                let sphere = Sphere::new(centre, 0.2, material);
+                world.add(Arc::new(sphere));
+            }
+        }
+    }
+
+    let material1 = Arc::new(Dielectric::new(1.5));
+    let sphere1 = Sphere::new(V3::new(0.0, 1.0, 0.0), 1.0, material1);
+    world.add(Arc::new(sphere1));
+
+    let material2 = Arc::new(Lambertian::new(Colour::new(0.4, 0.2, 0.1)));
+    let sphere2 = Sphere::new(V3::new(-4.0, 1.0, 0.0), 1.0, material2);
+    world.add(Arc::new(sphere2));
+
+    let material3 = Arc::new(Metal::new(Colour::new(0.7, 0.6, 0.5), 0.0));
+    let sphere3 = Sphere::new(V3::new(4.0, 1.0, 0.0), 1.0, material3);
+    world.add(Arc::new(sphere3));
 
     return world;
 }
@@ -93,7 +149,8 @@ fn main() {
     let max_depth = 50;
 
     // world
-    let world = random_scene();
+    let world = random_scene_list();
+    // let world = random_scene();
 
     // camera
     let look_from = V3::new(13.0, 2.0, 3.0);

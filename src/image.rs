@@ -41,9 +41,11 @@ where
 {
     return (0..height)
         .into_par_iter()
+        // .into_iter()
         .map(|row| {
             return (0..width)
                 .into_par_iter()
+                // .into_iter()
                 .map(|col| {
                     return f(row, col);
                 })
