@@ -13,27 +13,20 @@ impl AABB {
         return AABB { minimum, maximum };
     }
     pub fn does_hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> bool {
-        // let accessors: Vec<Fn(V3) -> f64> = vec![|p: V3| p.x, |p: V3| p.y, |p: V3| p.z];
-        let accessors = [0, 1, 2];
-        return accessors.into_iter().all(|i| {
-            let f = match i {
-                0 => |p: V3| p.x,
-                1 => |p: V3| p.y,
-                2 => |p: V3| p.z,
-                _ => unreachable!(),
-            };
-            let t0 = f64::min(
-                (f(self.minimum) - f(ray.origin)) / f(ray.direction),
-                (f(self.maximum) - f(ray.origin)) / f(ray.direction),
-            );
-            let t1 = f64::max(
-                (f(self.minimum) - f(ray.origin)) / f(ray.direction),
-                (f(self.maximum) - f(ray.origin)) / f(ray.direction),
-            );
-            let t_min = f64::max(t0, t_min);
-            let t_max = f64::min(t1, t_max);
-            return t_max > t_min;
-        });
+        for a in 0..2 {
+            let inv_d = 1.0 / ray.direction.get_by_index(a);
+            let mut t0 = (self.minimum.get_by_index(a) - ray.origin.get_by_index(a)) * inv_d;
+            let mut t1 = (self.minimum.get_by_index(a) - ray.origin.get_by_index(a)) * inv_d;
+            if inv_d < 0.0 {
+                std::mem::swap(&mut t0, &mut t1);
+            }
+            let t_min = if t0 > t_min { t0 } else { t_min };
+            let t_max = if t1 < t_max { t1 } else { t_max };
+            if t_max <= t_min {
+                return false;
+            }
+        }
+        return true;
     }
 }
 

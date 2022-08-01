@@ -40,6 +40,14 @@ impl V3 {
         let threshold = 1e-8;
         return self.x < threshold && self.y < threshold && self.x < threshold;
     }
+
+    pub fn get_by_index(&self, i: usize) -> f64 {
+        match i {
+            0 => self.x,
+            1 => self.y,
+            _ => self.z,
+        }
+    }
 }
 
 impl Neg for V3 {
