@@ -77,6 +77,14 @@
           drv = rt;
         };
 
+        apps.convert = flake-utils.lib.mkApp {
+          drv = pkgs.writeShellScriptBin "convert-to-png" ''
+            OTHER=''${1/ppm/png}
+            echo $OTHER
+            ${pkgs.imagemagick}/bin/convert $1 $OTHER
+          '';
+        };
+
         devShells.default = pkgs.mkShell {
           inputsFrom = builtins.attrValues self.checks;
 

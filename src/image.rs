@@ -40,16 +40,18 @@ where
     F: Fn(u64, u64) -> Colour + Sync,
 {
     return (0..height)
-        .into_par_iter()
-        // .into_iter()
+        // .into_par_iter()
+        .into_iter()
         .map(|row| {
-            return (0..width)
+            let output = (0..width)
                 .into_par_iter()
                 // .into_iter()
                 .map(|col| {
                     return f(row, col);
                 })
                 .collect();
+            eprintln!("Finished row {row}");
+            return output;
         })
         .collect();
 }

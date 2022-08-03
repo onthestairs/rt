@@ -1,5 +1,7 @@
 use std::ops::{Add, Div, Mul};
 
+use rand::{distributions::Standard, prelude::Distribution, Rng};
+
 #[derive(Clone, Copy)]
 pub struct Colour {
     pub red: f64,
@@ -69,10 +71,12 @@ impl Div<f64> for Colour {
     }
 }
 
-pub fn random_colour() -> Colour {
-    return Colour {
-        red: rand::random(),
-        green: rand::random(),
-        blue: rand::random(),
-    };
+impl Distribution<Colour> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Colour {
+        return Colour {
+            red: rng.gen(),
+            green: rng.gen(),
+            blue: rng.gen(),
+        };
+    }
 }
