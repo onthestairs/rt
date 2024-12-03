@@ -10,6 +10,9 @@ use crate::{
 
 pub trait Material {
     fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<(Ray, Colour)>;
+    fn emitted(&self, u: f64, v: f64, p: V3) -> Colour {
+        return Colour::new(0.0, 0.0, 0.0);
+    }
 }
 
 pub struct Lambertian {
@@ -125,5 +128,37 @@ impl Material for Dielectric {
 
         let scattered_ray = Ray::new(hit_record.point, direction);
         return Some((scattered_ray, attenuation));
+    }
+}
+
+pub struct DiffuseLight {
+    emit: Arc<dyn Texture + Send + Sync>,
+}
+
+impl DiffuseLight {
+    pub fn new(emit: Colour) -> Self {
+        let texture = SolidColour::new(emit);
+        return DiffuseLight {
+            emit: Arc::new(texture),
+        };
+    }
+    pub fn new_from_texture<T: 'static>(texture: T) -> Self
+    where
+        T: Texture + Send + Sync,
+    {
+        return DiffuseLight {
+            emit: Arc::new(texture),
+        };
+    }
+}
+
+impl Material for DiffuseLight {
+    fn scatter(&self, _ray_in: &Ray, _hit_record: &HitRecord) -> Option<(Ray, Colour)> {
+        // lights dont scatter
+        return None;
+    }
+
+    fn emitted(&self, u: f64, v: f64, p: V3) -> Colour {
+        return self.emit.colour(u, v, p);
     }
 }
