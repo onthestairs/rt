@@ -41,9 +41,13 @@ fn get_fidelity(fidelity: Fidelity, aspect_ratio: f64) -> (u64, u64, u64, u64) {
 }
 
 fn main() {
-    let scene = scenes::get_scene(scenes::SceneConfig::NTS);
+    render_scene(scenes::SceneConfig::NTS, Fidelity::Full);
+}
+
+fn render_scene(scene: scenes::SceneConfig, fidelity: Fidelity) {
+    let scene = scenes::get_scene(scene);
     let (samples_per_pixel, max_depth, image_width, image_height) =
-        get_fidelity(Fidelity::Full, scene.aspect_ratio);
+        get_fidelity(fidelity, scene.aspect_ratio);
 
     // render
     let i = image::generate_image(image_width, image_height, |row, col| {
@@ -69,13 +73,18 @@ where
     }
 
     if let Some(hit_record) = world.hit(ray, 0.001, f64::INFINITY) {
+        let emitted = hit_record
+            .material
+            .emitted(hit_record.u, hit_record.v, hit_record.point);
         if let Some((scattered_ray, attenuation)) = hit_record.material.scatter(ray, &hit_record) {
-            return attenuation * ray_colour(&scattered_ray, world, depth - 1);
+            return emitted + attenuation * ray_colour(&scattered_ray, world, depth - 1);
         } else {
-            return Colour::new(0.0, 0.0, 0.0);
+            return emitted;
         }
+    } else {
+        return Colour::new(0.0, 0.0, 0.0);
+        // let unit_direction = v3::unit_vector(ray.direction);
+        // let t = 0.5 * (unit_direction.y + 1.0);
+        // return (1.0 - t) * Colour::new(1.0, 1.0, 1.0) + t * Colour::new(0.5, 0.7, 1.0);
     }
-    let unit_direction = v3::unit_vector(ray.direction);
-    let t = 0.5 * (unit_direction.y + 1.0);
-    return (1.0 - t) * Colour::new(1.0, 1.0, 1.0) + t * Colour::new(0.5, 0.7, 1.0);
 }
