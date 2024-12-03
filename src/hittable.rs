@@ -166,3 +166,75 @@ impl Hittable for Sphere {
         return Some(aabb);
     }
 }
+
+pub struct XYRect {
+    x0: f64,
+    x1: f64,
+    y0: f64,
+    y1: f64,
+    /// The z-value for the rect
+    k: f64,
+    material: Arc<dyn Material + Send + Sync>,
+}
+
+impl XYRect {
+    pub fn new(
+        x0: f64,
+        x1: f64,
+        y0: f64,
+        y1: f64,
+        k: f64,
+        material: Arc<dyn Material + Send + Sync>,
+    ) -> Self {
+        return XYRect {
+            x0,
+            x1,
+            y0,
+            y1,
+            k,
+            material,
+        };
+    }
+
+    fn get_rect_uv(&self, p: V3) -> (f64, f64) {
+        todo!()
+    }
+}
+
+impl Hittable for XYRect {
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+        let t = (self.k - ray.origin.z) / ray.direction.z;
+        // does the ray hit the z-plane within the range
+        if t < t_min || t > t_max {
+            return None;
+        }
+        let x = ray.origin.x + t * ray.direction.x;
+        let y = ray.origin.y + t * ray.direction.y;
+        // are the x and y coords within the rectangle
+        if x < self.x0 || x > self.x1 || y < self.y0 || y > self.y1 {
+            return None;
+        }
+        let u = (x - self.x0) / (self.x1 - self.x0);
+        let v = (y - self.y0) / (self.y1 - self.y0);
+        let outward_normal = V3::new(0.0, 0.0, 1.0);
+        let point = ray.at(t);
+        let hit_record = HitRecord::new(
+            t,
+            u,
+            v,
+            point,
+            outward_normal,
+            ray.direction,
+            self.material.clone(),
+        );
+        return Some(hit_record);
+    }
+
+    fn bounding_box(&self, _t_0: f64, _t_1: f64) -> Option<AABB> {
+        let b = AABB::new(
+            V3::new(self.x0, self.y0, self.k - 0.0001),
+            V3::new(self.x1, self.y1, self.k + 0.0001),
+        );
+        return Some(b);
+    }
+}
