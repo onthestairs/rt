@@ -5,8 +5,8 @@ use rand::{prelude::StdRng, Rng, SeedableRng};
 use crate::{
     camera::Camera,
     colour::Colour,
-    hittable::{HittableList, Sphere},
-    material::{Dielectric, Lambertian, Material, Metal},
+    hittable::{HittableList, Sphere, XYRect},
+    material::{Dielectric, DiffuseLight, Lambertian, Material, Metal},
     texture::Checkers,
     utils::scale,
     v3::V3,
@@ -102,6 +102,16 @@ fn make_world(seed: u64, checkers_scale: f64, include_small_spheres: bool) -> Hi
     let material3 = Arc::new(Metal::new(Colour::new(0.7, 0.6, 0.5), 0.0));
     let sphere3 = Sphere::new(V3::new(2.5, 1.0, 0.0), 1.0, material3);
     world.add(Arc::new(sphere3));
+
+    // lights
+    let light_strength = 10.0;
+    let light_material = Arc::new(DiffuseLight::new(Colour::new(
+        light_strength,
+        light_strength,
+        light_strength,
+    )));
+    let light = Sphere::new(V3::new(0.0, 10.0, 0.0), 2.0, light_material);
+    world.add(Arc::new(light));
 
     return world;
 }
